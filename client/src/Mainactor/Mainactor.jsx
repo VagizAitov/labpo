@@ -1,31 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Navbar from "../Navbar/Navbar";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function Mainactor() {
-  const [dataMainactor, setDataMainactor] = useState();
+  const [dataActors, setDataActors] = useState();
+  const [name, setName] = useState();
+
+  const submit = () => {
+    axios
+      .post("http://localhost:8082/mainactor", { name: name })
+      .then((res) => console.log(res));
+  };
   useEffect(() => {
     axios
       .get("http://localhost:8082/mainactor")
-      .then((res) => setDataMainactor(res.data));
+      .then((res) => setDataActors(res.data))
+      .catch((err) => console.log(err));
   }, []);
   return (
     <div>
       <Navbar />
-      <ul>
-        {dataMainactor == undefined ? (
-          <p>Loading...</p>
-        ) : (
-          dataMainactor.map((obj) => (
-            <li>
-              <p>{obj.id_film}</p>
-              <p>
-                {obj.name == "" ? <input placeholder="Имя"></input> : obj.name}
-              </p>
-            </li>
-          ))
-        )}
-      </ul>
+      <form>
+        Создать автора: <br />
+        Имя:{" "}
+        <input
+          type="text"
+          placeholder="Имя"
+          onChange={(e) => setName(e.target.value)}
+        />{" "}
+        <br />
+        <button onClick={submit}>Создать</button>
+      </form>
+      <div>
+        <ul>
+          {dataActors == undefined ? (
+            <p>Loading</p>
+          ) : (
+            dataActors.map((obj) => (
+              <li key={obj.id}>
+                id: {obj.id} <br />
+                Имя: {obj.name}
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
     </div>
   );
 }

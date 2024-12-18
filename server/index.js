@@ -9,7 +9,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "lab",
+  database: "labpo",
 });
 
 const PORT = process.env.PORT || 8082;
@@ -21,208 +21,123 @@ app.use(
 
 app.use(express.json());
 
-app.get("/films", (req, res) => {
-  const sql = "SELECT * FROM films";
-  db.query(sql, (err, data) => {
-    if (err) {
-      return res.json(err);
-    } else {
-      res.json(data);
-    }
-  });
-});
-app.get("/producer", (req, res) => {
-  const sql = "SELECT * FROM producer";
-  db.query(sql, (err, data) => {
-    if (err) {
-      return res.json(err);
-    } else {
-      res.json(data);
-    }
-  });
-});
-
-app.get("/mainactor", (req, res) => {
-  const sql = "SELECT * FROM mainactor";
-  db.query(sql, (err, data) => {
-    if (err) {
-      return res.json(err);
-    } else {
-      res.json(data);
-    }
-  });
-});
-
-app.get("/author", (req, res) => {
-  const sql = "SELECT * FROM author";
-  db.query(sql, (err, data) => {
-    if (err) {
-      return res.json(err);
-    } else {
-      res.json(data);
-    }
-  });
-});
-
-app.get("/company", (req, res) => {
-  const sql = "SELECT * FROM company";
-  db.query(sql, (err, data) => {
-    if (err) {
-      return res.json(err);
-    } else {
-      res.json(data);
-    }
-  });
-});
-
-app.post("/films", (req, res) => {
+app.get("/main", (req, res) => {
   const sql =
-    "INSERT INTO films (`name`, `description`, `price`, `quantity`, `age`) VALUES (?)";
+    "SELECT films.id AS id, films.name AS f_name, films.description AS f_desc, films.price AS f_price, films.quantity AS f_q, films.age AS f_age, company.name AS c_name, mainactor.name AS mact_name, producer.name AS pr_name, author.name AS a_name FROM films JOIN author ON films.id_author=author.id JOIN company ON films.id_company=company.id JOIN mainactor ON films.id_mainactor=mainactor.id JOIN producer ON films.id_producer=producer.id";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+app.get("/search", (req, res) => {
+  const sql = `SELECT films.id AS id, films.name AS f_name, films.description AS f_desc, films.price AS f_price, films.quantity AS f_q, films.age AS f_age, company.name AS c_name, mainactor.name AS mact_name, producer.name AS pr_name, author.name AS a_name FROM films JOIN author ON films.id_author=author.id JOIN company ON films.id_company=company.id JOIN mainactor ON films.id_mainactor=mainactor.id JOIN producer ON films.id_producer=producer.id WHERE films.name LIKE '${
+    req.query.name
+  }%' AND films.description LIKE '${req.query.desc}%' ${
+    !req.query.pricef || !req.query.prices
+      ? ""
+      : `AND films.price >= ${req.query.pricef} AND films.price <= ${req.query.prices}`
+  }${
+    !req.query.quantityf || !req.query.quantitys
+      ? ""
+      : `AND films.quantity >= ${req.query.quantityf} AND films.quantity <= ${req.query.quantitys}`
+  }${
+    !req.query.agef || !req.query.ages
+      ? ""
+      : `AND films.age >= ${req.query.agef} AND films.age <= ${req.query.ages}`
+  }`;
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+
+app.post("/main", (req, res) => {
   const values = [
     req.body.name,
     req.body.description,
     req.body.price,
     req.body.quantity,
-    req.body.ageLimit,
+    req.body.age,
+    req.body.id_author,
+    req.body.id_company,
+    req.body.id_mainactor,
+    req.body.id_producer,
   ];
+  const sql =
+    "INSERT INTO films (name, description, price, quantity, age, id_author, id_company, id_mainactor, id_producer) VALUES (?)";
   db.query(sql, [values], (err, data) => {
-    if (err) {
-      return res.json(err);
-    }
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
-app.post("/author", (req, res) => {
-  const sql = "INSERT INTO author (`id_film`) VALUES (?)";
-  const values = [req.body.id_film];
-  db.query(sql, [values], (err, data) => {
-    if (err) {
-      return res.json(err);
-    }
+app.delete("/main", (req, res) => {
+  const sql = `DELETE FROM films WHERE id=${req.query.id}`;
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
 
-app.post("/mainactor", (req, res) => {
-  const sql = "INSERT INTO mainactor (`id_film`) VALUES (?)";
-  const values = [req.body.id_film];
-  db.query(sql, [values], (err, data) => {
-    if (err) {
-      return res.json(err);
-    }
+app.post("/author", (req, res) => {
+  const sql = `INSERT INTO author (name) VALUES ('${req.body.name}')`;
+  console.log(sql);
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
-app.post("/producer", (req, res) => {
-  const sql = "INSERT INTO producer (`id_film`) VALUES (?)";
-  const values = [req.body.id_film];
-  db.query(sql, [values], (err, data) => {
-    if (err) {
-      return res.json(err);
-    }
+app.get("/author", (req, res) => {
+  const sql = "SELECT * FROM author";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
     return res.json(data);
   });
 });
 app.post("/company", (req, res) => {
-  const sql = "INSERT INTO company (`id_film`) VALUES (?)";
-  const values = [req.body.id_film];
-  db.query(sql, [values], (err, data) => {
-    if (err) {
-      return res.json(err);
-    }
-    return res.json(data);
-  });
-});
-
-app.delete("/films", (req, res) => {
-  const sql = `DELETE FROM films WHERE id=${req.body.id}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json;
-  });
-});
-app.delete("/author", (req, res) => {
-  const sql = `DELETE FROM author WHERE id_film=${req.body.id}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json;
-  });
-});
-app.delete("/mainactor", (req, res) => {
-  const sql = `DELETE FROM mainactor WHERE id_film=${req.body.id}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json;
-  });
-});
-app.delete("/company", (req, res) => {
-  const sql = `DELETE FROM company WHERE id_film=${req.body.id}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json;
-  });
-});
-app.delete("/producer", (req, res) => {
-  const sql = `DELETE FROM producer WHERE id_film=${req.body.id}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json;
-  });
-});
-app.get("/filmsByName", (req, res) => {
-  const sql = `SELECT * FROM films WHERE name LIKE ('${req.query.name}%')`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
-app.get("/filmsByDesc", (req, res) => {
-  const sql = `SELECT * FROM films WHERE description LIKE ('${req.query.description}%')`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
-app.get("/filmsByPrice", (req, res) => {
-  const sql = `SELECT * FROM films WHERE price BETWEEN ${req.query.pricef} AND ${req.query.prices}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
-app.get("/filmsByQuantity", (req, res) => {
-  const sql = `SELECT * FROM films WHERE quantity BETWEEN ${req.query.qf} AND ${req.query.qs}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
-app.get("/filmsByAge", (req, res) => {
-  const sql = `SELECT * FROM films WHERE age BETWEEN ${req.query.agef} AND ${req.query.ages}`;
-  db.query(sql, (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
-  });
-});
-
-app.get("/authorByIdFilm", (req, res) => {
-  const sql = `SELECT * FROM author WHERE id_film=${req.query.id_film}`;
+  const sql = `INSERT INTO company (name) VALUES ('${req.body.name}')`;
   console.log(sql);
   db.query(sql, (err, data) => {
     if (err) return res.json(err);
     return res.json(data);
   });
 });
-
-app.post("/updateAuthor", (req, res) => {
-  const sql = `UPDATE author SET name = '${req.body.name}', phone = ${req.body.phone} WHERE id_film = ${req.body.id_film}`;
-  console.log(sql);
+app.get("/company", (req, res) => {
+  const sql = "SELECT * FROM company";
   db.query(sql, (err, data) => {
-    if (err) return res.json({ Message: "Err" });
-    return res.json;
+    if (err) return res.json(err);
+    return res.json(data);
   });
 });
-
+app.post("/mainactor", (req, res) => {
+  const sql = `INSERT INTO mainactor (name) VALUES ('${req.body.name}')`;
+  console.log(sql);
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+app.get("/mainactor", (req, res) => {
+  const sql = "SELECT * FROM mainactor";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+app.post("/producer", (req, res) => {
+  const sql = `INSERT INTO producer (name) VALUES ('${req.body.name}')`;
+  console.log(sql);
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+app.get("/producer", (req, res) => {
+  const sql = "SELECT * FROM producer";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
 app.listen(PORT, (err) => {
   console.log(`${PORT}`, err);
 });

@@ -1,43 +1,51 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import React from "react";
 import Navbar from "../Navbar/Navbar";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function Producers() {
-  const [dataProducers, setDataProducers] = useState();
+  const [dataProds, setDataProds] = useState();
+  const [name, setName] = useState();
 
+  const submit = () => {
+    axios
+      .post("http://localhost:8082/producer", { name: name })
+      .then((res) => console.log(res));
+  };
   useEffect(() => {
     axios
       .get("http://localhost:8082/producer")
-      .then((res) => setDataProducers(res.data))
+      .then((res) => setDataProds(res.data))
       .catch((err) => console.log(err));
   }, []);
-  console.log(dataProducers);
   return (
     <div>
       <Navbar />
-      <ul>
-        {dataProducers == undefined ? (
-          <p>Loading...</p>
-        ) : (
-          dataProducers.map((obj) => (
-            <li key={obj.id} id={obj.id.toString()}>
-              <p>{obj.id_film}</p>
-              <p>
-                {obj.name == "" ? <input placeholder="Имя"></input> : obj.name}
-              </p>
-              <p>
-                {obj.phone == "" ? (
-                  <input placeholder="Телефон"></input>
-                ) : (
-                  obj.phone
-                )}
-              </p>
-              <button>Изменить</button>
-            </li>
-          ))
-        )}
-      </ul>
+      <form>
+        Создать автора: <br />
+        Имя:{" "}
+        <input
+          type="text"
+          placeholder="Имя"
+          onChange={(e) => setName(e.target.value)}
+        />{" "}
+        <br />
+        <button onClick={submit}>Создать</button>
+      </form>
+      <div>
+        <ul>
+          {dataProds == undefined ? (
+            <p>Loading</p>
+          ) : (
+            dataProds.map((obj) => (
+              <li key={obj.id}>
+                id: {obj.id} <br />
+                Имя: {obj.name}
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
     </div>
   );
 }

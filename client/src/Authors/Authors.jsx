@@ -2,38 +2,50 @@ import React from "react";
 import Navbar from "../Navbar/Navbar";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 
 export default function Authors() {
   const [dataAuthors, setDataAuthors] = useState();
+  const [name, setName] = useState();
+
+  const submit = () => {
+    axios
+      .post("http://localhost:8082/author", { name: name })
+      .then((res) => console.log(res));
+  };
   useEffect(() => {
     axios
-      .get("http://localhost:8082/producer")
+      .get("http://localhost:8082/author")
       .then((res) => setDataAuthors(res.data))
       .catch((err) => console.log(err));
   }, []);
-  console.log(dataAuthors);
   return (
     <div>
       <Navbar />
-      <ul>
-        {dataAuthors == undefined ? (
-          <p>Loading...</p>
-        ) : (
-          dataAuthors.map((obj) => (
-            <li style={{ listStyleType: "none" }}>
-              <p>
-                <Link to={`/changeInfoAuthor/${obj.id_film}`}>
-                  {obj.id_film}
-                </Link>
-              </p>
-              <p>
-                {obj.name == "" ? <input placeholder="Имя"></input> : obj.name}
-              </p>
-            </li>
-          ))
-        )}
-      </ul>
+      <form>
+        Создать автора: <br />
+        Имя:{" "}
+        <input
+          type="text"
+          placeholder="Имя"
+          onChange={(e) => setName(e.target.value)}
+        />{" "}
+        <br />
+        <button onClick={submit}>Создать</button>
+      </form>
+      <div>
+        <ul>
+          {dataAuthors == undefined ? (
+            <p>Loading</p>
+          ) : (
+            dataAuthors.map((obj) => (
+              <li key={obj.id}>
+                id: {obj.id} <br />
+                Имя: {obj.name}
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
     </div>
   );
 }
